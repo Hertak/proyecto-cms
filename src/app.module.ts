@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { AppDataSource } from './../ormconfig';
 import { RolesModule } from './roles/roles.module';
 import { SeedService } from './seeds/seedService';
+import { TaxonomyModule } from './taxonomy/taxonomy.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SeedService } from './seeds/seedService';
     ImageFormatsModule,
     AuthModule,
     RolesModule,
+    TaxonomyModule,
   ],
 
   controllers: [AppController],
