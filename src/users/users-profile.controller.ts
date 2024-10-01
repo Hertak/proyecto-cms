@@ -5,7 +5,7 @@ import { User } from './entities/user.entity';
 import { Roles } from '@/commons/decorators/roles.decorator';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MediaUsage } from '@/commons/enums/media-usage.enum';
+
 import { MediaService } from '@/media/media.service';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -39,7 +39,7 @@ export class UserProfileController {
     let avatarId: number | null = null;
 
     if (file) {
-      const media = await this.mediaService.uploadAndProcessImage(file, MediaUsage.AVATAR);
+      const media = await this.mediaService.uploadAndProcessImage(file, 'avatar');
       avatarId = media.id;
     }
 

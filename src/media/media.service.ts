@@ -4,7 +4,6 @@ import * as path from 'path';
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ImageProcessingService } from './image-processing.service';
 import { generateFilePath } from './utils/file-path.util';
-import { MediaUsage } from '@/commons/enums/media-usage.enum';
 import { Media } from './entities/media.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
@@ -21,7 +20,7 @@ export class MediaService {
     private readonly imageProcessingService: ImageProcessingService,
   ) {}
 
-  async findAllWithFormats(page: number = 1, limit: number = 10, usage?: MediaUsage) {
+  async findAllWithFormats(page: number = 1, limit: number = 10, usage?: string) {
     const maxLimit = 100;
     limit = limit > maxLimit ? maxLimit : limit;
 
@@ -48,12 +47,7 @@ export class MediaService {
       current_page: page,
     };
   }
-  async uploadAndProcessImage(file: Express.Multer.File, usage: MediaUsage, description?: string, name?: string) {
-    const validUsageValues = Object.values(MediaUsage);
-
-    if (!validUsageValues.includes(usage)) {
-      throw new BadRequestException(`El valor de usage "${usage}" no es válido. Los valores permitidos son: ${validUsageValues.join(', ')}.`);
-    }
+  async uploadAndProcessImage(file: Express.Multer.File, usage: string, description?: string, name?: string) {
     const extension = file.originalname.split('.').pop();
     const { fileName, filePath } = generateFilePath(usage, extension);
 

@@ -1,4 +1,3 @@
-import { MediaUsage } from '@/commons/enums/media-usage.enum';
 import { ImageFormat } from '@/image_formats/entities/image_format.entity';
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
@@ -31,8 +30,8 @@ export class Media {
   @Column()
   url: string;
 
-  @Column({ type: 'enum', enum: MediaUsage })
-  usage: MediaUsage;
+  @Column()
+  usage: string;
 
   @OneToMany(() => ImageFormat, (imageFormat) => imageFormat.media)
   imageFormats: ImageFormat[];

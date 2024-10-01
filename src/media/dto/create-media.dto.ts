@@ -1,15 +1,13 @@
-import { MediaUsage } from '@/commons/enums/media-usage.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsEnum, IsOptional, IsInt } from 'class-validator';
+import { IsString, IsOptional, IsInt } from 'class-validator';
 
 export class UploadMediaDto {
   @ApiProperty({
     description: 'Contexto de uso de la imagen, es un enum porlo que solo acepta ciertos valores',
     example: 'avatar',
   })
-  @IsEnum(MediaUsage)
   @IsString()
-  usage: MediaUsage;
+  usage: string;
 
   @ApiProperty({
     description: 'Descripción opcional para la imagen',

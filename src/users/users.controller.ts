@@ -18,7 +18,6 @@ import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, 
 import { Roles } from '@/commons/decorators/roles.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { MediaService } from '@/media/media.service';
-import { MediaUsage } from '@/commons/enums/media-usage.enum';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 @ApiTags('Usuarios')
@@ -64,7 +63,7 @@ export class UserController {
     let avatarId: number | null = null;
 
     if (file) {
-      const media = await this.mediaService.uploadAndProcessImage(file, MediaUsage.AVATAR);
+      const media = await this.mediaService.uploadAndProcessImage(file, 'avatar');
       avatarId = media.id;
     }
 

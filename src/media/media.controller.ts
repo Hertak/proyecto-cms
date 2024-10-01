@@ -14,7 +14,6 @@ import {
 } from '@nestjs/common';
 import { MediaService } from './media.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MediaUsage } from '@/commons/enums/media-usage.enum';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ImageResponseDto } from './dto/image-response.dto';
 import { Roles } from '@/commons/decorators/roles.decorator';
@@ -29,10 +28,10 @@ export class MediaController {
   @ApiOperation({ summary: 'Obtener lista paginada de imágenes con sus formatos' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número de página (por defecto 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Cantidad de resultados por página (por defecto 10)' })
-  @ApiQuery({ name: 'usage', required: false, enum: MediaUsage, description: 'Filtro por usage' })
+  @ApiQuery({ name: 'usage', required: false, type: String, description: 'Filtro por usage' })
   @ApiResponse({ status: 200, description: 'Lista paginada de imágenes con sus formatos.' })
   @ApiResponse({ status: 400, description: 'Page y limit deben ser números.' })
-  async getImagesWithPagination(@Query('page') page: string = '1', @Query('limit') limit: string = '10', @Query('usage') usage?: MediaUsage) {
+  async getImagesWithPagination(@Query('page') page: string = '1', @Query('limit') limit: string = '10', @Query('usage') usage?: string) {
     const pageNumber = Number(page);
     const limitNumber = Number(limit);
 
@@ -60,8 +59,7 @@ export class MediaController {
         },
         usage: {
           type: 'string',
-          enum: Object.values(MediaUsage),
-          description: 'El propósito de la imagen (debe coincidir con el enum MediaUsage)',
+          description: 'El propósito de la imagen, por ej: avatar, banner, etc...',
         },
         description: {
           type: 'string',
@@ -79,16 +77,10 @@ export class MediaController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
     @UploadedFile() file: Express.Multer.File,
-    @Body('usage') usage: MediaUsage,
+    @Body('usage') usage: string = 'imagen',
     @Body('description') description?: string,
     @Body('name') name?: string,
   ) {
-    const validUsageValues = Object.values(MediaUsage);
-
-    if (!validUsageValues.includes(usage)) {
-      throw new BadRequestException(`El valor de usage "${usage}" no es válido. Los valores permitidos son: ${validUsageValues.join(', ')}.`);
-    }
-
     const savedMedia = await this.mediaService.uploadAndProcessImage(file, usage, description, name);
 
     return {
