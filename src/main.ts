@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe, VersioningType } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './commons/filters/http-exception.filter';
-
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { JwtAuthGuard } from './commons/guards/auth.guard';

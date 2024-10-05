@@ -6,23 +6,28 @@ export function validateName(name: string): void {
   }
 }
 
-export function validateSlug(slug: string): void {
-  if (!slug || slug.trim().length === 0) {
-    throw new BadRequestException('El campo "slug" es obligatorio');
-  }
+export function validateSlug(slug: string): string {
+  // Limpiamos los espacios en blanco al principio y al final
+  const cleanedSlug = slug.trim();
 
+  // Verificamos si el slug es válido, pero no si está presente
   const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-  if (!slugRegex.test(slug)) {
+  if (!slugRegex.test(cleanedSlug)) {
     throw new BadRequestException('El campo "slug" debe ser un identificador válido (solo letras minúsculas, números y guiones).');
   }
+
+  return cleanedSlug;
 }
 
 export function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-');
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ñ/g, 'n')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
 }
 
 export function validateDescription(description?: string): void {

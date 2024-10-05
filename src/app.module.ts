@@ -11,6 +11,7 @@ import { AppDataSource } from './../ormconfig';
 import { RolesModule } from './roles/roles.module';
 import { SeedService } from './seeds/seedService';
 import { TaxonomyModule } from './taxonomy/taxonomy.module';
+import { TagModule } from './taxonomy/tag.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TaxonomyModule } from './taxonomy/taxonomy.module';
     AuthModule,
     RolesModule,
     TaxonomyModule,
+    TagModule,
   ],
 
   controllers: [AppController],

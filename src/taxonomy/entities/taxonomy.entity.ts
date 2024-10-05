@@ -1,29 +1,29 @@
+import { Media } from '@/media/entities/media.entity';
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
-import { Term } from './terms.entity';
 
 @Entity('taxonomies')
 export class Taxonomy {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: false })
   name: string;
 
-  @Column()
+  @Column({ nullable: false })
   slug: string;
 
   @Column({ nullable: true })
-  description: string;
+  description?: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: false })
   entityName: string;
 
   @ManyToOne(() => Taxonomy, (taxonomy) => taxonomy.children, { nullable: true })
   parent: Taxonomy;
 
-  @OneToMany(() => Taxonomy, (taxonomy) => taxonomy.parent)
+  @OneToMany(() => Taxonomy, (taxonomy) => taxonomy.parent, { cascade: true })
   children: Taxonomy[];
 
-  @OneToMany(() => Term, (term) => term.taxonomy)
-  terms: Term[];
+  @ManyToOne(() => Media, { nullable: true })
+  image: Media;
 }

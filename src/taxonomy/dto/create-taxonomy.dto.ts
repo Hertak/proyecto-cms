@@ -1,50 +1,50 @@
-import { IsString, IsOptional, IsNotEmpty, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsString, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateTaxonomyDto {
   @ApiProperty({
-    description: 'Nombre de la taxonomía',
-    example: 'Productos',
+    description: 'El nombre de la taxonomía',
+    example: 'Categoría',
   })
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'El campo "name" es obligatorio' })
   name: string;
 
   @ApiProperty({
-    description: 'Slug de la taxonomía (identificador único para URL)',
-    example: 'productos',
+    description: 'Slug único de la taxonomía para URL amigable',
+    example: 'categoria',
   })
-  @IsString()
-  @IsNotEmpty()
-  slug: string;
+  @IsOptional()
+  @IsString({ message: 'El slug debe ser string válido' })
+  slug?: string;
 
   @ApiPropertyOptional({
     description: 'Descripción de la taxonomía',
-    example: 'Una categoría para clasificar productos',
+    example: 'Una categoría que agrupa tipos de publicaciones',
   })
   @IsOptional()
   @IsString()
   description?: string;
 
   @ApiProperty({
-    description: 'Nombre de la entidad o módulo al que pertenece la taxonomía',
-    example: 'products',
+    description: 'Nombre de la entidad a la que pertenece la taxonomía',
+    example: 'post',
   })
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Debe haber una entidad válida' })
   entityName: string;
 
   @ApiPropertyOptional({
-    description: 'ID de la taxonomía padre, si es jerárquica',
+    description: 'ID de la taxonomía padre, si es una sub-taxonomía',
     example: 1,
   })
   @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
   parentId?: number;
 
   @ApiPropertyOptional({
-    description: 'ID de la imagen asociada (del módulo de media)',
-    example: 42,
+    description: 'ID de la imagen asociada a la taxonomía',
+    example: 3,
   })
   @IsOptional()
   @IsNumber()
