@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Tag } from './entities/tag.entity';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
-import { validateAndFormatTagName, generateSlug, validateUniqueTag } from './util/tags-validation.util';
+import { validateAndFormatName, generateUniqueSlug, validateUniqueName } from '@/commons/validations/common-validation.utils';
 
 @Injectable()
 export class TagService {
@@ -14,11 +14,11 @@ export class TagService {
   ) {}
 
   async create(createTagDto: CreateTagDto): Promise<Tag> {
-    const formattedName = validateAndFormatTagName(createTagDto.name);
+    const formattedName = validateAndFormatName(createTagDto.name);
 
-    await validateUniqueTag(formattedName, createTagDto.entityName, this.tagRepository);
+    await validateUniqueName(formattedName, this.tagRepository);
 
-    const slug = await generateSlug(formattedName, this.tagRepository);
+    const slug = await generateUniqueSlug(formattedName, this.tagRepository);
 
     const newTag = this.tagRepository.create({
       ...createTagDto,
@@ -26,9 +26,9 @@ export class TagService {
       slug,
     });
 
+    // Guardar el nuevo tag en la base de datos
     return this.tagRepository.save(newTag);
   }
-
   async findAll(entityName?: string, search?: string, page: number = 1, limit: number = 10, order?: string): Promise<any> {
     const query = this.tagRepository.createQueryBuilder('tag');
 
@@ -69,7 +69,7 @@ export class TagService {
   async findOne(id: number): Promise<Tag> {
     const tag = await this.tagRepository.findOne({ where: { id } });
     if (!tag) {
-      throw new BadRequestException(`El tag con ID ${id} no fue encontrado.`);
+      throw new BadRequestException(`La etiqueta con ID ${id} no fue encontrada.`);
     }
     return tag;
   }
@@ -78,11 +78,11 @@ export class TagService {
     const tag = await this.findOne(id);
 
     if (updateTagDto.name) {
-      tag.name = validateAndFormatTagName(updateTagDto.name);
+      tag.name = validateAndFormatName(updateTagDto.name);
     }
 
     if (updateTagDto.name) {
-      tag.slug = await generateSlug(tag.name, this.tagRepository);
+      tag.slug = await generateUniqueSlug(tag.name, this.tagRepository);
     }
 
     Object.assign(tag, updateTagDto);

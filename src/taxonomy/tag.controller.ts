@@ -20,7 +20,7 @@ export class TagController {
     try {
       return await this.tagService.create(createTagDto);
     } catch (error) {
-      throw new BadRequestException(`Error en la solicitud: ${error.message}`);
+      throw new BadRequestException(`${error.message}`);
     }
   }
 

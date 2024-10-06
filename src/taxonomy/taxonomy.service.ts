@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Taxonomy } from './entities/taxonomy.entity';
 import { Repository } from 'typeorm';
 import { Media } from '@/media/entities/media.entity';
-import { generateSlug, validateDescription, validateEntityName, validateName, validateSlug } from './util/taxonomy-term-validation.util';
+import { generateUniqueSlug, validateDescription, validateAndFormatName, validateSlug } from '@/commons/validations/common-validation.utils';
 import { MediaService } from '@/media/media.service';
 
 @Injectable()
@@ -20,13 +20,13 @@ export class TaxonomyService {
   async create(createTaxonomyDto: CreateTaxonomyDto, savedMedia?: Media): Promise<Taxonomy> {
     const { name, slug, parentId, imageId, entityName, description } = createTaxonomyDto;
 
-    validateName(name);
+    validateAndFormatName(name);
 
     let finalSlug: string;
     if (slug) {
       finalSlug = validateSlug(slug);
     } else {
-      finalSlug = generateSlug(name);
+      finalSlug = await generateUniqueSlug(name, this.taxonomyRepository);
     }
 
     await this.validateUniqueSlug(finalSlug);
@@ -103,6 +103,10 @@ export class TaxonomyService {
 
     const taxonomies = await query.getMany();
 
+    if (taxonomies.length === 0) {
+      return { message: 'La búsqueda no devolvió resultados.' };
+    }
+
     return {
       data: taxonomies.map((taxonomy) => {
         if (taxonomy.parent) {
@@ -143,13 +147,10 @@ export class TaxonomyService {
       throw new NotFoundException(`Taxonomía con ID ${id} no encontrada`);
     }
 
-    // Validaciones
     if (updateTaxonomyDto.name) {
-      validateName(updateTaxonomyDto.name);
+      validateAndFormatName(updateTaxonomyDto.name);
     }
-    if (updateTaxonomyDto.entityName) {
-      validateEntityName(updateTaxonomyDto.entityName);
-    }
+
     if (updateTaxonomyDto.description) {
       validateDescription(updateTaxonomyDto.description);
     }
@@ -157,23 +158,20 @@ export class TaxonomyService {
       if (updateTaxonomyDto.slug) {
         updateTaxonomyDto.slug = validateSlug(updateTaxonomyDto.slug);
       } else if (updateTaxonomyDto.name) {
-        updateTaxonomyDto.slug = generateSlug(updateTaxonomyDto.name);
+        updateTaxonomyDto.slug = await generateUniqueSlug(updateTaxonomyDto.name, this.taxonomyRepository);
       }
     } catch (error) {
       throw new BadRequestException(`Error en la solicitud: ${error.message}`);
     }
 
-    // Si se proporciona un archivo de imagen, subimos la imagen usando el usage correspondiente.
     if (image) {
       const usage = updateTaxonomyDto.entityName || taxonomy.entityName;
       const newImage = await this.mediaService.uploadAndProcessImage(image, usage);
       taxonomy.image = newImage;
     }
 
-    // Actualizamos los campos de la taxonomía según el DTO
     Object.assign(taxonomy, updateTaxonomyDto);
 
-    // Si se proporciona un nuevo ID de taxonomía padre, buscamos y asignamos la relación
     if (updateTaxonomyDto.parentId) {
       const parent = await this.taxonomyRepository.findOne({ where: { id: updateTaxonomyDto.parentId } });
       if (!parent) {

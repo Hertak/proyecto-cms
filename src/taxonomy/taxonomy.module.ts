@@ -11,5 +11,6 @@ import { RolesModule } from '@/roles/roles.module';
   imports: [TypeOrmModule.forFeature([Taxonomy, Media]), RolesModule, MediaModule],
   controllers: [TaxonomyController],
   providers: [TaxonomyService],
+  exports: [TaxonomyService, TypeOrmModule],
 })
 export class TaxonomyModule {}

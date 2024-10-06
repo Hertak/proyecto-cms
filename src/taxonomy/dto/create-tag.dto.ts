@@ -6,9 +6,9 @@ export class CreateTagDto {
     description: 'Nombre del tag',
     example: 'React',
   })
-  @IsString({ message: 'El campo "name" debe ser un string válido' })
-  @IsNotEmpty({ message: 'El campo "name" no puede estar vacío' })
-  @MaxLength(50, { message: 'El campo "name" no puede tener más de 50 caracteres' })
+  @IsString({ message: 'debe ser un string válido' })
+  @IsNotEmpty({ message: 'no puede estar vacío' })
+  @MaxLength(50, { message: 'debe tener entre 3 y 50 caracteres' })
   name: string;
 
   @ApiProperty({
