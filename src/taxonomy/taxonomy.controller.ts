@@ -27,13 +27,10 @@ export class TaxonomyController {
     try {
       let savedMedia = null;
 
-      // Si se proporciona una imagen en la solicitud, la subimos usando MediaService
       if (image) {
-        // Usamos entityName como el usage para la imagen
         savedMedia = await this.mediaService.uploadAndProcessImage(image, createTaxonomyDto.entityName);
       }
 
-      // Pasamos la información de la taxonomía y la referencia de la imagen (si se subió) al servicio
       return await this.taxonomyService.create(createTaxonomyDto, savedMedia);
     } catch (error) {
       throw new BadRequestException(`Error en la solicitud: ${error.message}`);

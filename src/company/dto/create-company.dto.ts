@@ -42,18 +42,20 @@ export class CreateCompanyDto {
 
   @ApiProperty({ description: 'Estado de la empresa, si está activa o no', default: true })
   @IsOptional()
-  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean({ message: 'isActive debe ser un Boleano' })
   isActive?: boolean;
 
   @ApiProperty({ description: 'Indica si la empresa ofrece servicio 24/7', default: false })
   @IsOptional()
-  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean({ message: 'isActive debe ser un Boleano' })
   offersFullDayService?: boolean;
 
   @ApiProperty({ description: 'IDs de las categorías de taxonomía', required: false, type: [Number] })
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : [Number(value)])) // Convertimos los valores a números
+  @Transform(({ value }) => (Array.isArray(value) ? value.map(Number) : [Number(value)]))
   @IsNumber({}, { each: true, message: 'Cada valor en taxonomyIds debe ser un número.' })
   taxonomyIds?: number[];
 }
