@@ -91,6 +91,16 @@ export class UserService {
     return user;
   }
 
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con email ${email} no encontrado`);
+    }
+
+    return user;
+  }
+
   async findByUsername(username: string, options?: { relations: string[] }): Promise<User> {
     return this.userRepository.findOne({
       where: { username },
@@ -146,7 +156,7 @@ export class UserService {
     return updatedUser;
   }
 
-  async updateProfile(userId: number, updateProfileDto: UpdateProfileDto): Promise<User> {
+  async updateProfile(userId: number, updateProfileDto: Partial<UpdateProfileDto>): Promise<User> {
     const { email, password, firstName, lastName, avatarId } = updateProfileDto;
 
     let user = await this.userRepository.findOne({
@@ -159,6 +169,8 @@ export class UserService {
     }
 
     const oldAvatar = user.avatar;
+
+    // Solo actualizamos los campos que estén presentes en el DTO
 
     if (email && email !== user.email) {
       await validateUniqueEmail(this.userRepository, email, user.id);
@@ -180,6 +192,7 @@ export class UserService {
 
     const updatedUser = await this.userRepository.save(user);
 
+    // Eliminar avatar antiguo si es necesario
     if (oldAvatar) {
       await this.mediaService.deleteImage(oldAvatar.id);
     }
@@ -193,6 +206,7 @@ export class UserService {
 
     return user;
   }
+
   async getProfileData(userId: number): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -232,5 +246,21 @@ export class UserService {
     await this.userRepository.delete(user.id);
 
     return { message: 'Usuario eliminado con éxito' };
+  }
+  async updatePassword(userId: number, newPassword: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    // Hashear la nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar solo el campo password
+    user.password = hashedPassword;
+
+    // Guardar el usuario con la nueva contraseña en la base de datos
+    return this.userRepository.save(user);
   }
 }

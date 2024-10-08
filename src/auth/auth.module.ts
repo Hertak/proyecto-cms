@@ -9,6 +9,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from '@/roles/roles.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { NotificationService } from '@/notification/notification.service';
+import { UserNotificationService } from '@/notification/user-notification.service';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { APP_GUARD } from '@nestjs/core';
   providers: [
     AuthService,
     JwtStrategy,
+    NotificationService,
+    UserNotificationService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

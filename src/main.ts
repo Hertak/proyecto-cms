@@ -7,6 +7,7 @@ import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { JwtAuthGuard } from './commons/guards/auth.guard';
 import { RolesGuard } from './commons/guards/roles.guard';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -21,9 +22,10 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, options);
     SwaggerModule.setup('docs', app, document);
   }
+  const configService = app.get(ConfigService);
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalGuards(app.get(JwtAuthGuard), app.get(RolesGuard));
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new AllExceptionsFilter(configService));
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

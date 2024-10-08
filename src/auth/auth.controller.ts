@@ -1,14 +1,20 @@
-import { Controller, Post, Body, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, ValidationPipe, Query, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { CreateUserDto } from './dto/create-auth.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RegisterResponseDto } from './dto/register-response.dto';
+import { UserService } from '@/users/users.service';
+import { UserNotificationService } from '@/notification/user-notification.service';
 
 @ApiTags('Autentificación')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+    private readonly userNotificationService: UserNotificationService,
+  ) {}
 
   @ApiResponse({
     status: 200,
@@ -39,5 +45,41 @@ export class AuthController {
   })
   async refreshToken(@Body('refreshToken') refreshToken: string) {
     return this.authService.refreshToken(refreshToken);
+  }
+  @Post('request-password-reset')
+  @ApiOperation({ summary: 'Solicitar el restablecimiento de contraseña' })
+  @ApiBody({
+    description: 'Correo electrónico del usuario para enviar el enlace de restablecimiento de contraseña',
+    schema: { example: { email: 'user@example.com' } },
+  })
+  @ApiResponse({ status: 200, description: 'Correo de recuperación enviado.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  async requestPasswordReset(@Body('email') email: string) {
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    const resetToken = this.authService.generateResetToken(user.id);
+
+    await this.userNotificationService.sendPasswordResetEmail(email, resetToken);
+
+    return { message: 'Correo de recuperación enviado' };
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Restablecer la contraseña utilizando el token de recuperación' })
+  @ApiQuery({ name: 'token', description: 'Token JWT enviado en el enlace de recuperación de contraseña' })
+  @ApiBody({ description: 'Nueva contraseña que se desea establecer', schema: { example: { newPassword: 'NewSecurePassword123' } } })
+  @ApiResponse({ status: 200, description: 'Contraseña restablecida exitosamente.' })
+  @ApiResponse({ status: 401, description: 'Token inválido o expirado.' })
+  async resetPassword(@Query('token') token: string, @Body('newPassword') newPassword: string) {
+    try {
+      const payload = await this.authService.verifyResetToken(token);
+      await this.authService.resetPassword(payload.id, newPassword);
+      return { message: 'Contraseña restablecida exitosamente' };
+    } catch (error) {
+      throw new UnauthorizedException('Token inválido o expirado');
+    }
   }
 }

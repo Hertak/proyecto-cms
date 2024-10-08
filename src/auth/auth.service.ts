@@ -6,6 +6,8 @@ import { CreateUserDto } from './dto/create-auth.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { RolesService } from '@/roles/roles.service';
+import { UserNotificationService } from '@/notification/user-notification.service';
+import { NotificationService } from '@/notification/notification.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +16,8 @@ export class AuthService {
     private userService: UserService,
     private readonly configService: ConfigService,
     private readonly roleService: RolesService,
+    private readonly userNotificationService: UserNotificationService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -46,7 +50,8 @@ export class AuthService {
       const secret = this.configService.get<string>('JWT_SECRET_KEY');
       const access_token = this.jwtService.sign(payload, { secret, expiresIn: '60m' });
       const refresh_token = this.jwtService.sign({ sub: user.id }, { secret, expiresIn: '7d' });
-
+      await this.userNotificationService.sendWelcomeEmail(user.email, user.username);
+      await this.notificationService.sendNewUserNotification(user.email, user.username);
       return {
         access_token,
         refresh_token,
@@ -62,42 +67,53 @@ export class AuthService {
 
   async login(loginUserDto: LoginUserDto) {
     const { username, password } = loginUserDto;
+
     const user = await this.userService.findByUsername(username, {
       relations: ['userRoles', 'userRoles.role'],
     });
 
-    if (user && bcrypt.compareSync(password, user.password)) {
-      const roles = user.userRoles.map((userRole) => userRole.role.name);
-
-      const payload = {
-        username: user.username,
-        sub: user.id,
-        roles,
-      };
-
-      const secret = this.configService.get<string>('JWT_SECRET_KEY');
-
-      const access_token = this.jwtService.sign(payload, {
-        secret,
-        expiresIn: '365d',
-      });
-
-      const refresh_token = this.jwtService.sign(
-        { sub: user.id, roles },
-        {
-          secret,
-          expiresIn: '7d',
-        },
-      );
-
-      return {
-        access_token,
-        refresh_token,
-        user,
-      };
+    if (!user) {
+      throw new UnauthorizedException('Usuario o contraseña incorrectas');
     }
 
-    return null;
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Usuario o contraseña incorrectas');
+    }
+
+    const roles = user.userRoles.map((userRole) => userRole.role.name);
+
+    const payload = {
+      username: user.username,
+      sub: user.id,
+      roles,
+    };
+
+    const secret = this.configService.get<string>('JWT_SECRET_KEY');
+
+    const access_token = this.jwtService.sign(payload, {
+      secret,
+      expiresIn: '365d',
+    });
+
+    const refresh_token = this.jwtService.sign(
+      { sub: user.id, roles },
+      {
+        secret,
+        expiresIn: '7d',
+      },
+    );
+
+    return {
+      access_token,
+      refresh_token,
+      user,
+    };
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const saltRounds = 10;
+    return await bcrypt.hash(password, saltRounds);
   }
 
   async refreshToken(refreshToken: string) {
@@ -162,5 +178,25 @@ export class AuthService {
     }
 
     return user;
+  }
+  generateResetToken(userId: number) {
+    const payload = { id: userId };
+    return this.jwtService.sign(payload, {
+      expiresIn: '15m',
+    });
+  }
+  async verifyResetToken(token: string) {
+    try {
+      const secret = this.configService.get<string>('JWT_SECRET_KEY');
+      const payload = this.jwtService.verify(token, { secret });
+      return payload;
+    } catch (error) {
+      console.error('Error al verificar el token:', error.message); // Asegúrate de ver el error en el log
+      throw new Error('Token inválido o expirado'); // Lanzamos la excepción con un mensaje claro
+    }
+  }
+
+  async resetPassword(userId: number, newPassword: string) {
+    await this.userService.updatePassword(userId, newPassword);
   }
 }

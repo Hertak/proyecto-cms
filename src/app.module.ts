@@ -13,6 +13,7 @@ import { SeedService } from './seeds/seedService';
 import { TaxonomyModule } from './taxonomy/taxonomy.module';
 import { TagModule } from './taxonomy/tag.module';
 import { CompanyModule } from './company/company.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CompanyModule } from './company/company.module';
     TaxonomyModule,
     TagModule,
     CompanyModule,
+    NotificationModule,
   ],
 
   controllers: [AppController],
