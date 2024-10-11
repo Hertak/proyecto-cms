@@ -9,7 +9,6 @@ import { ImageFormatsModule } from './image_formats/image_formats.module';
 import { AuthModule } from './auth/auth.module';
 import { AppDataSource } from './../ormconfig';
 import { RolesModule } from './roles/roles.module';
-import { SeedService } from './seeds/seedService';
 import { TaxonomyModule } from './taxonomy/taxonomy.module';
 import { TagModule } from './taxonomy/tag.module';
 import { CompanyModule } from './company/company.module';
@@ -33,6 +32,6 @@ import { NotificationModule } from './notification/notification.module';
   ],
 
   controllers: [AppController],
-  providers: [AppService, SeedService],
+  providers: [AppService],
 })
 export class AppModule {}
