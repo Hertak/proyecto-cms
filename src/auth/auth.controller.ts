@@ -1,4 +1,4 @@
-import { Controller, Post, Body, ValidationPipe, Query, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, ValidationPipe, Query, UnauthorizedException, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { CreateUserDto } from './dto/create-auth.dto';
@@ -17,7 +17,7 @@ export class AuthController {
   ) {}
 
   @ApiResponse({
-    status: 200,
+    status: 201,
     description: 'Información de la respuesta',
     type: RegisterResponseDto,
   })
@@ -30,6 +30,7 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
   @Post('login')
+  @HttpCode(200)
   @ApiOperation({
     summary: 'iniciar sesión',
     description: 'Con este endpoint se puede iniciar sesión',
