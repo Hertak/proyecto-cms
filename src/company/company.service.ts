@@ -98,7 +98,7 @@ export class CompanyService {
       .createQueryBuilder('company')
       .leftJoinAndMapMany('company.taxonomies', CompanyTaxonomy, 'companyTaxonomy', 'companyTaxonomy.companyId = company.id')
       .leftJoinAndMapMany('company.taxonomies', Taxonomy, 'taxonomy', 'taxonomy.id = companyTaxonomy.taxonomyId')
-      .select(['company.id', 'company.name', 'taxonomy.id', 'taxonomy.name'])
+      .select(['company.id', 'company.name', 'company.description', 'taxonomy.id', 'taxonomy.name', 'taxonomy.description'])
       .getMany();
 
     return companiesWithTaxonomies;
@@ -138,6 +138,7 @@ export class CompanyService {
     const structuredData = taxonomiesWithCompanies.reduce((acc, current) => {
       const taxonomyId = current.taxonomy_id;
       const taxonomyName = current.taxonomy_name;
+      const taxonomyDescription = current.taxonomy_description;
       const company = {
         id: current.company_id,
         name: current.company_name,
@@ -152,6 +153,7 @@ export class CompanyService {
         acc.push({
           id: taxonomyId,
           name: taxonomyName,
+          description: taxonomyDescription,
           companies: [company],
         });
       }

@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsString, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsNotEmpty } from 'class-validator';
 
 export class CreateTaxonomyDto {
   @ApiProperty({
@@ -32,6 +32,14 @@ export class CreateTaxonomyDto {
   })
   @IsString({ message: 'Debe haber una entidad válida' })
   entityName: string;
+
+  @ApiPropertyOptional({
+    description: 'Tipo de la taxonomía',
+    example: 'Category',
+  })
+  @IsString({ message: 'El tipo de taxonomía debe ser una cadena de texto válida' })
+  @IsOptional()
+  tax_type?: string;
 
   @ApiPropertyOptional({
     description: 'ID de la taxonomía padre, si es una sub-taxonomía',

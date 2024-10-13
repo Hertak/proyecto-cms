@@ -28,6 +28,14 @@ export class UpdateTaxonomyDto {
   description?: string;
 
   @ApiPropertyOptional({
+    description: 'Tipo de la taxonomía',
+    example: 'Category',
+  })
+  @IsString({ message: 'El tipo de taxonomía debe ser una cadena de texto válida' })
+  @IsOptional()
+  tax_type?: string;
+
+  @ApiPropertyOptional({
     description: 'Nombre de la entidad a la que pertenece la taxonomía',
     example: 'post',
   })

@@ -42,6 +42,7 @@ export class TaxonomyController {
   @ApiQuery({ name: 'entityName', required: false })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'parentId', required: false, type: Number })
+  @ApiQuery({ name: 'tax_type', required: false, type: String })
   @ApiQuery({ name: 'orderBy', required: false, description: 'Ordenar por campo (e.g. name:ASC o name:DESC)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -49,6 +50,7 @@ export class TaxonomyController {
     @Query('entityName') entityName?: string,
     @Query('name') name?: string,
     @Query('parentId') parentId?: number,
+    @Query('tax_type') tax_type?: string,
     @Query('orderField') orderField: string = 'id',
     @Query('order') order: 'ASC' | 'DESC' = 'ASC',
     @Query('page') page: string = '1',
@@ -64,7 +66,7 @@ export class TaxonomyController {
     if (isNaN(numericLimit) || numericLimit < 1) {
       throw new BadRequestException('El límite debe ser un número válido mayor o igual a 1.');
     }
-    return this.taxonomyService.findAll(entityName, name, parentId, orderField, order, numericPage, numericLimit);
+    return this.taxonomyService.findAll(entityName, name, parentId, tax_type, orderField, order, numericPage, numericLimit);
   }
 
   @Get(':id')

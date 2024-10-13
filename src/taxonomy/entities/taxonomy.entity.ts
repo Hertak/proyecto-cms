@@ -18,6 +18,9 @@ export class Taxonomy {
   @Column({ nullable: false })
   entityName: string;
 
+  @Column({ default: 'Category' })
+  tax_type: string;
+
   @ManyToOne(() => Taxonomy, (taxonomy) => taxonomy.children, { nullable: true })
   parent: Taxonomy;
 

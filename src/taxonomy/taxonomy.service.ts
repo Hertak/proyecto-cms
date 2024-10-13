@@ -18,7 +18,7 @@ export class TaxonomyService {
     private readonly mediaService: MediaService,
   ) {}
   async create(createTaxonomyDto: CreateTaxonomyDto, savedMedia?: Media): Promise<Taxonomy> {
-    const { name, slug, parentId, imageId, entityName, description } = createTaxonomyDto;
+    const { name, slug, parentId, imageId, entityName, description, tax_type } = createTaxonomyDto;
 
     validateAndFormatName(name);
 
@@ -50,13 +50,14 @@ export class TaxonomyService {
         throw new BadRequestException(`La imagen con ID ${imageId} no existe.`);
       }
     }
-
+    const finalTaxType = tax_type || 'Category';
     const taxonomy = this.taxonomyRepository.create({
       name,
       slug: finalSlug,
       description,
       entityName: finalEntityName,
       parent,
+      tax_type: finalTaxType,
       image: savedMedia ? savedMedia : null,
     });
 
@@ -67,6 +68,7 @@ export class TaxonomyService {
     entityName?: string,
     name?: string,
     parentId?: number,
+    tax_type?: string,
     orderField: string = 'id',
     order: 'ASC' | 'DESC' = 'ASC',
     page: number = 1,
@@ -92,7 +94,9 @@ export class TaxonomyService {
     } else {
       query.andWhere('taxonomy.parent IS NULL');
     }
-
+    if (tax_type) {
+      query.andWhere('taxonomy.tax_type = :tax_type', { tax_type });
+    }
     const totalItems = await query.getCount();
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -179,7 +183,9 @@ export class TaxonomyService {
       }
       taxonomy.parent = parent;
     }
-
+    if (updateTaxonomyDto.tax_type) {
+      taxonomy.tax_type = updateTaxonomyDto.tax_type;
+    }
     return this.taxonomyRepository.save(taxonomy);
   }
 
