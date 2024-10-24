@@ -7,6 +7,9 @@ export class SeedRolesAndPermissions {
     const roleRepository = dataSource.getRepository(Role);
     const permissionRepository = dataSource.getRepository(Permission);
 
+    console.log('Role Repository:', roleRepository);
+    console.log('Permission Repository:', permissionRepository);
+
     const permissions = [
       {
         action: 'CREATE',
@@ -43,7 +46,6 @@ export class SeedRolesAndPermissions {
         resource: 'GALLERY',
         description: 'Permite borrar una galería',
       },
-
       {
         action: 'MANAGE',
         resource: 'ALL',
@@ -69,7 +71,7 @@ export class SeedRolesAndPermissions {
     if (!adminRole) {
       adminRole = roleRepository.create({
         name: 'Admin',
-        description: 'Rol con acceso completo a todo el sistema',
+        description: 'Rol con permisos de administración completos',
       });
       await roleRepository.save(adminRole);
     }
@@ -82,8 +84,9 @@ export class SeedRolesAndPermissions {
       });
       await roleRepository.save(userRole);
     }
+
     let profesionalRole = await roleRepository.findOne({ where: { name: 'Profesional' } });
-    if (!userRole) {
+    if (!profesionalRole) {
       profesionalRole = roleRepository.create({
         name: 'Profesional',
         description: 'Rol con permisos para gestionar su propio perfil y galería',
@@ -91,9 +94,14 @@ export class SeedRolesAndPermissions {
       await roleRepository.save(profesionalRole);
     }
 
+    // Verificar que los permisos no sean null antes de asignarlos
     const manageAllPermission = await permissionRepository.findOne({
       where: { action: 'MANAGE', resource: 'ALL' },
     });
+
+    if (adminRole.permissions === null || adminRole.permissions === undefined) {
+      adminRole.permissions = [];
+    }
     adminRole.permissions = [manageAllPermission];
     await roleRepository.save(adminRole);
 
@@ -108,6 +116,10 @@ export class SeedRolesAndPermissions {
         { action: 'DELETE', resource: 'GALLERY' },
       ],
     });
+
+    if (userRole.permissions === null || userRole.permissions === undefined) {
+      userRole.permissions = [];
+    }
     userRole.permissions = userPermissions;
     await roleRepository.save(userRole);
 
@@ -122,6 +134,10 @@ export class SeedRolesAndPermissions {
         { action: 'DELETE', resource: 'GALLERY' },
       ],
     });
+
+    if (profesionalRole.permissions === null || profesionalRole.permissions === undefined) {
+      profesionalRole.permissions = [];
+    }
     profesionalRole.permissions = profesionalPermissions;
     await roleRepository.save(profesionalRole);
   }

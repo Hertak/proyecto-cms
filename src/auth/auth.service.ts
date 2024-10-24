@@ -50,17 +50,31 @@ export class AuthService {
       const secret = this.configService.get<string>('JWT_SECRET_KEY');
       const access_token = this.jwtService.sign(payload, { secret, expiresIn: '60m' });
       const refresh_token = this.jwtService.sign({ sub: user.id }, { secret, expiresIn: '7d' });
-      await this.userNotificationService.sendWelcomeEmail(user.email, user.username);
-      await this.notificationService.sendNewUserNotification(user.email, user.username);
+      let emailErrorMessage = null;
+
+      try {
+        await this.userNotificationService.sendWelcomeEmail(user.email, user.username);
+
+        await this.notificationService.sendNewUserNotification(user.email, user.username);
+      } catch (smtpError) {
+        emailErrorMessage = 'Error al enviar el email';
+      }
+
       return {
+        message: emailErrorMessage ? 'Registro exitoso, pero con advertencias.' : 'Registro exitoso.',
+        emailError: emailErrorMessage,
         access_token,
         refresh_token,
         user,
       };
     } catch (error) {
+      console.error('Error durante el proceso de registro:', error);
+
       if (error.code === '23505') {
+        console.log('Error: Usuario o email ya está en uso.');
         throw new BadRequestException('Usuario o email ya está en uso');
       }
+
       throw error;
     }
   }
@@ -69,7 +83,7 @@ export class AuthService {
     const { username, password } = loginUserDto;
 
     const user = await this.userService.findByUsername(username, {
-      relations: ['userRoles', 'userRoles.role'],
+      relations: ['userRoles', 'userRoles.role', 'avatar', 'avatar.imageFormats'],
     });
 
     if (!user) {
